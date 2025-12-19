@@ -1,0 +1,13 @@
+app = "yield-flink"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[services]]
+  internal_port = 8081
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80

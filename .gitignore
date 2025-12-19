@@ -1,0 +1,36 @@
+# Scala / sbt
+target/
+project/target/
+project/project/
+.bsp/
+.metals/
+.vscode/
+.idea/
+*.class
+*.log
+*.jar
+!project/build.properties
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker volumes (if using named volumes)
+docker-data/
+
+# IDE
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.iml
+
+# Logs
+logs/
+*.log
+
