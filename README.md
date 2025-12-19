@@ -37,32 +37,19 @@ The structure is intentionally designed to support **many pipelines**, **many Fl
 
 Development follows a progressive validation model:
 
-1. **Local development** on
-   **Windows 11 Home Edition Desktop (RTX 4070)**
-   using Git, Scala, sbt, and Fly.io CLI
+1. **Local development** using Docker Compose
+   * Kafka, Zookeeper, and Flink run in Docker
+   * Scala applications built with sbt
+   * Manual testing and validation
 
-2. **Manual local validation**
+2. **Cross-platform validation**
+   * Windows 11 (PowerShell)
+   * macOS (bash/zsh)
+   * Linux (bash)
 
-   * Tests run via sbt
-   * Scripts used where possible to enable future automation
-
-3. **Cross-machine projectvalidation**
-
-   * Windows 11 Home Edition Laptop
-   * macOS (Apple Silicon)
-
-4. **Cloud validation on Fly.io**
-
-   * Same artifacts
-   * Same tests
-   * Same expectations
-
-5. **Remote validation**
-
-   * Inspect logs and UIs directly on Fly.io
-
-No local Docker runtime is required.
-All containers are built and executed remotely by Fly.io.
+3. **Cloud deployment** (future)
+   * Deploy to Fly.io using same artifacts
+   * Remote monitoring and validation
 
 ---
 
@@ -219,23 +206,17 @@ export FRED_API_KEY="YOUR_KEY_HERE"
 
 ### Local Development (Recommended)
 
-For local development without Fly.io:
+For local development and testing:
 
-**Quick Start:**
-```bash
-# See QUICKSTART.md for 5-minute setup
-docker-compose up -d
-./scripts/bootstrap/build-all.sh
-./scripts/test/run-pipeline.sh
-```
-
-**Detailed Guide:** See [LOCAL_SETUP.md](LOCAL_SETUP.md)
+**📖 See [QUICKSTART.md](QUICKSTART.md)** for complete setup instructions.
 
 **Requirements:**
 - Docker Desktop
 - Java 17+
 - sbt
-- FRED API Key
+- FRED API Key (free from https://fred.stlouisfed.org)
+
+**Windows Users:** See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for installation help.
 
 ---
 

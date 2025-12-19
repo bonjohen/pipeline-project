@@ -41,12 +41,12 @@ cd ../flink-job
 # Check if Flink CLI is available
 if command -v flink &> /dev/null; then
     echo "Using Flink CLI..."
-    flink run -c YieldCurveJob target/scala-2.13/yield-curve-flink-assembly-0.1.0.jar
+    flink run -c YieldCurveJob target/scala-2.12/yield-curve-flink-assembly-0.1.0.jar
 else
     echo "Flink CLI not found. Please submit job manually:"
     echo "1. Go to http://localhost:8081"
     echo "2. Click 'Submit New Job'"
-    echo "3. Upload: pipelines/yield-curve/flink-job/target/scala-2.13/yield-curve-flink-assembly-0.1.0.jar"
+    echo "3. Upload: pipelines/yield-curve/flink-job/target/scala-2.12/yield-curve-flink-assembly-0.1.0.jar"
     echo "4. Entry Class: YieldCurveJob"
     echo "5. Click 'Submit'"
 fi
