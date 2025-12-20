@@ -47,7 +47,7 @@ function Show-Signals {
         [bool]$FollowMode
     )
     
-    Write-Host "`n========================================" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
     Write-Host "  $Name Signals" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
     
@@ -74,7 +74,7 @@ function Format-Signal {
         
         # Format based on signal type
         if ($obj.signal_id -eq "UST_10Y_2Y") {
-            $status = if ($obj.is_inverted) { "🔴 INVERTED" } else { "🟢 NORMAL" }
+            $status = if ($obj.is_inverted) { " INVERTED" } else { " NORMAL" }
             Write-Host "$($obj.event_date) | Spread: $([math]::Round($obj.spread_bps, 1)) bps | $status" -ForegroundColor $(if ($obj.is_inverted) { "Red" } else { "Green" })
         }
         elseif ($obj.signal_id -eq "CREDIT_SPREAD_HY_10Y") {
@@ -95,7 +95,7 @@ function Format-Signal {
                 "SEVERE_STRESS" { "Magenta" }
                 default { "White" }
             }
-            $spike = if ($obj.spike_detected) { "⚠️ SPIKE" } else { "✓" }
+            $spike = if ($obj.spike_detected) { " SPIKE" } else { " CHECK" }
             Write-Host "$($obj.event_date) | Spread: $([math]::Round($obj.spread_bps, 1)) bps | $spike | $($obj.stress_level)" -ForegroundColor $color
         }
     }
@@ -105,8 +105,8 @@ function Format-Signal {
 }
 
 # Main execution
-Write-Host "`n🔍 Viewing Pipeline Signals" -ForegroundColor Green
-Write-Host "====================================`n" -ForegroundColor Green
+Write-Host " Viewing Pipeline Signals" -ForegroundColor Green
+Write-Host "====================================" -ForegroundColor Green
 
 if ($Pipeline -eq "All") {
     foreach ($key in $topics.Keys | Sort-Object) {
@@ -118,5 +118,5 @@ else {
     Show-Signals -Name $Pipeline -Topic $topics[$Pipeline] -MessageCount $Count -FollowMode $Follow
 }
 
-Write-Host "`n✅ Done" -ForegroundColor Green
+Write-Host " Done" -ForegroundColor Green
 

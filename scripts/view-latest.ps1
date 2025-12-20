@@ -1,92 +1,68 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    View the latest signal from each pipeline
+    View the latest signals from all pipelines
 .DESCRIPTION
-    Shows a quick summary of the most recent signal from each pipeline
+    Displays the latest 3 signals from Yield Curve, Credit Spreads, and Repo Stress pipelines
+.PARAMETER Pipeline
+    Which pipeline to view: YieldCurve, CreditSpreads, RepoStress, or All (default)
+.PARAMETER Count
+    Number of messages to display (default: 3)
+.EXAMPLE
+    .\scripts\view-latest.ps1
+    View latest 3 signals from all pipelines
+.EXAMPLE
+    .\scripts\view-latest.ps1 -Pipeline YieldCurve -Count 5
+    View latest 5 yield curve signals
 #>
+
+param(
+    [ValidateSet("All", "YieldCurve", "CreditSpreads", "RepoStress")]
+    [string]$Pipeline = "All",
+
+    [int]$Count = 3
+)
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "`n================================================================" -ForegroundColor Cyan
-Write-Host "           LATEST SIGNALS FROM ALL PIPELINES                   " -ForegroundColor Cyan
-Write-Host "================================================================`n" -ForegroundColor Cyan
-
-# Yield Curve
-Write-Host "[YIELD CURVE] 10Y-2Y Spread" -ForegroundColor Yellow
-try {
-    $allYield = docker exec yield-kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic signal.yield_curve --from-beginning --max-messages 100 2>&1
-    $yieldData = $allYield | Where-Object { $_ -match '^\{' } | Select-Object -Last 1
-    if ($yieldData) {
-        $yield = $yieldData | ConvertFrom-Json
-        $status = if ($yield.is_inverted) { "[INVERTED]" } else { "[NORMAL]" }
-        $spreadColor = if ($yield.is_inverted) { "Red" } else { "Green" }
-        Write-Host "  Date:   $($yield.event_date)" -ForegroundColor White
-        Write-Host "  Spread: $([math]::Round($yield.spread_bps, 1)) bps" -ForegroundColor $spreadColor
-        Write-Host "  Status: $status" -ForegroundColor $spreadColor
-    } else {
-        Write-Host "  No data available" -ForegroundColor Gray
-    }
-} catch {
-    Write-Host "  Error reading data" -ForegroundColor Gray
+# Topic mapping
+$topics = @{
+    "YieldCurve" = "signal.yield_curve"
+    "CreditSpreads" = "signal.credit_spread"
+    "RepoStress" = "signal.repo_stress"
 }
 
-Write-Host ""
+function Show-Signals {
+    param(
+        [string]$Name,
+        [string]$Topic,
+        [int]$MessageCount
+    )
 
-# Credit Spreads
-Write-Host "[CREDIT SPREADS] High Yield vs 10Y Treasury" -ForegroundColor Yellow
-try {
-    $allCredit = docker exec yield-kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic signal.credit_spread --from-beginning --max-messages 100 2>&1
-    $creditData = $allCredit | Where-Object { $_ -match '^\{' } | Select-Object -Last 1
-    if ($creditData) {
-        $credit = $creditData | ConvertFrom-Json
-        $color = switch ($credit.stress_level) {
-            "LOW" { "Green" }
-            "MODERATE" { "Yellow" }
-            "HIGH" { "Red" }
-            "EXTREME" { "Magenta" }
-            default { "White" }
-        }
-        Write-Host "  Date:         $($credit.event_date)" -ForegroundColor White
-        Write-Host "  Spread:       $([math]::Round($credit.spread_bps, 1)) bps" -ForegroundColor $color
-        Write-Host "  Regime:       $($credit.regime)" -ForegroundColor $color
-        Write-Host "  Stress Level: $($credit.stress_level)" -ForegroundColor $color
-    } else {
-        Write-Host "  No data available" -ForegroundColor Gray
-    }
-} catch {
-    Write-Host "  Error reading data" -ForegroundColor Gray
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "  $Name Signals (Latest $MessageCount)" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
+
+    docker exec yield-kafka kafka-console-consumer `
+        --bootstrap-server localhost:9092 `
+        --topic $Topic `
+        --from-beginning `
+        --max-messages $MessageCount
 }
 
-Write-Host ""
+# Main execution
+Write-Host " Viewing Latest Pipeline Signals" -ForegroundColor Green
+Write-Host "====================================" -ForegroundColor Green
 
-# Repo Stress
-Write-Host "[REPO MARKET STRESS] SOFR Spread" -ForegroundColor Yellow
-try {
-    $allRepo = docker exec yield-kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic signal.repo_stress --from-beginning --max-messages 100 2>&1
-    $repoData = $allRepo | Where-Object { $_ -match '^\{' } | Select-Object -Last 1
-    if ($repoData) {
-        $repo = $repoData | ConvertFrom-Json
-        $color = switch ($repo.stress_level) {
-            "NORMAL" { "Green" }
-            "ELEVATED" { "Yellow" }
-            "STRESS" { "Red" }
-            "SEVERE_STRESS" { "Magenta" }
-            default { "White" }
-        }
-        $spike = if ($repo.spike_detected) { "YES" } else { "NO" }
-        $spikeColor = if ($repo.spike_detected) { "Red" } else { "Green" }
-        Write-Host "  Date:         $($repo.event_date)" -ForegroundColor White
-        Write-Host "  Spread:       $([math]::Round($repo.spread_bps, 1)) bps" -ForegroundColor $color
-        Write-Host "  Spike:        $spike" -ForegroundColor $spikeColor
-        Write-Host "  Stress Level: $($repo.stress_level)" -ForegroundColor $color
-    } else {
-        Write-Host "  No data available" -ForegroundColor Gray
+if ($Pipeline -eq "All") {
+    foreach ($key in $topics.Keys | Sort-Object) {
+        Show-Signals -Name $key -Topic $topics[$key] -MessageCount $Count
+        Start-Sleep -Milliseconds 500
     }
-} catch {
-    Write-Host "  Error reading data" -ForegroundColor Gray
+}
+else {
+    Show-Signals -Name $Pipeline -Topic $topics[$Pipeline] -MessageCount $Count
 }
 
-Write-Host "`n================================================================" -ForegroundColor Cyan
-Write-Host ""
+Write-Host " Done" -ForegroundColor Green
 
