@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "signal_id": "REPO_STRESS_SOFR",
+  "event_date": "YYYY-MM-DD",
+  "sofr_pct": 4.57,
+  "fed_funds_target_pct": 4.50,
+  "spread_bps": 7.0,
+  "spike_detected": false,
+  "stress_level": "NORMAL",
+  "rolling_avg_30d_bps": 5.2
+}
+

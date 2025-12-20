@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "signal_id": "CREDIT_SPREAD_HY_10Y",
+  "event_date": "YYYY-MM-DD",
+  "hy_yield_pct": 7.85,
+  "treasury_10y_pct": 4.27,
+  "spread_bps": 358.0,
+  "regime": "ELEVATED",
+  "stress_level": "MODERATE"
+}
+

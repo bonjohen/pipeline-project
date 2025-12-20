@@ -16,8 +16,39 @@ The project is designed as a **teaching-quality reference system** that demonstr
 * Cloud-native deployment using Fly.io
 * Clean separation between **platform**, **pipelines**, and **future customer-facing systems**
 
-The first release implements **one pipeline** (Yield Curve Inversion).
+The first release implements **three pipelines**:
+1. Yield Curve Inversion (10Y-2Y Treasury spread)
+2. Credit Spreads (High Yield vs Treasuries)
+3. Repo Market Stress (SOFR spikes)
+
 The structure is intentionally designed to support **many pipelines**, **many Flink jobs**, and **future dashboards** without refactoring.
+
+---
+
+## Quick Links
+
+* **[Quick Start Guide](QUICKSTART.md)** – Get running locally in 10 minutes (automated script available!)
+* **[Pipeline Reference](PIPELINES.md)** – Detailed documentation for all implemented pipelines
+* **[Windows Setup](WINDOWS_SETUP.md)** – Windows-specific installation help
+* **[Signals Reference](SIGNALS.md)** – All planned signals and their logic
+
+## 🚀 Quick Start
+
+```powershell
+# Windows - Automatically starts Docker Desktop if needed
+$env:FRED_API_KEY = "your_api_key_here"
+.\scripts\start-all.ps1
+```
+
+```bash
+# macOS/Linux - Automatically starts Docker if needed
+export FRED_API_KEY="your_api_key_here"
+./scripts/start-all.sh
+```
+
+This automated script starts Docker (if needed), builds all pipelines, starts Docker services, runs ingestors, and submits Flink jobs.
+
+See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
 
 ---
 
@@ -80,10 +111,18 @@ yield-curve-pipeline/
 │   └── flink/                # Flink runtime Fly app
 │
 ├── pipelines/                # Independent analytical pipelines
-│   └── yield_curve/          # Pipeline 01: Yield Curve Inversion
-│       ├── schemas/          # Event contracts
-│       ├── ingestor/         # Scala ingestion job
-│       └── flink-job/        # Flink streaming job
+│   ├── yield-curve/          # Pipeline 01: Yield Curve Inversion
+│   │   ├── schemas/          # Event contracts
+│   │   ├── ingestor/         # Scala ingestion job
+│   │   └── flink-job/        # Flink streaming job
+│   ├── credit-spreads/       # Pipeline 02: Credit Spreads (HY vs Treasuries)
+│   │   ├── schemas/
+│   │   ├── ingestor/
+│   │   └── flink-job/
+│   └── repo-stress/          # Pipeline 03: Repo Market Stress / SOFR Spikes
+│       ├── schemas/
+│       ├── ingestor/
+│       └── flink-job/
 │
 ├── tests/                    # Cross-pipeline and platform tests (future)
 │
@@ -150,13 +189,7 @@ This structure supports:
 
 ### Fly.io CLI
 
-**Windows (CMD):**
-
-```cmd
-iwr https://fly.io/install.ps1 -useb | iex
-```
-
-**Bash (Git Bash / macOS):**
+**Bash (Git Bash (Win) / macOS):**
 
 ```bash
 curl -L https://fly.io/install.sh | sh
@@ -236,18 +269,69 @@ For local development and testing:
 
 ---
 
-## Yield Curve Pipeline
+## Implemented Pipelines
 
-### Data Inputs
+### 1. Yield Curve Inversion
 
+**Data Inputs:**
 * **DGS10** – 10-year Treasury yield
 * **DGS2** – 2-year Treasury yield
 
-### Output Signal
-
+**Output Signal:**
 * `spread_bps = (10Y − 2Y) × 100`
 * `is_inverted = spread_bps < 0`
 * `regime = INVERTED | NORMAL`
+
+**Kafka Topics:**
+* Input: `norm.macro.rate`
+* Output: `signal.yield_curve`
+
+---
+
+### 2. Credit Spreads (High Yield vs Treasuries)
+
+**Data Inputs:**
+* **BAMLH0A0HYM2EY** – ICE BofA US High Yield Index Effective Yield
+* **DGS10** – 10-year Treasury yield
+
+**Output Signal:**
+* `spread_bps = (HY Yield − Treasury Yield) × 100`
+* `regime = COMPRESSED | NORMAL | ELEVATED | DISTRESSED`
+* `stress_level = LOW | MODERATE | HIGH | EXTREME`
+
+**Kafka Topics:**
+* Input: `norm.macro.rate`
+* Output: `signal.credit_spread`
+
+**Interpretation:**
+* Spreads < 300 bps: Compressed (low risk premium)
+* Spreads 300-500 bps: Normal market conditions
+* Spreads 500-700 bps: Elevated risk
+* Spreads > 700 bps: Distressed conditions
+
+---
+
+### 3. Repo Market Stress / SOFR Spikes
+
+**Data Inputs:**
+* **SOFR** – Secured Overnight Financing Rate
+* **DFEDTARU** – Federal Funds Target Range - Upper Limit
+* **DFEDTARL** – Federal Funds Target Range - Lower Limit
+
+**Output Signal:**
+* `spread_bps = (SOFR − Fed Funds Target Midpoint) × 100`
+* `spike_detected = |spread_bps| > 25`
+* `stress_level = NORMAL | ELEVATED | STRESS | SEVERE_STRESS`
+
+**Kafka Topics:**
+* Input: `norm.macro.rate`
+* Output: `signal.repo_stress`
+
+**Interpretation:**
+* Spread < 10 bps: Normal funding conditions
+* Spread 10-25 bps: Elevated but manageable
+* Spread 25-50 bps: Funding stress
+* Spread > 50 bps: Severe stress (liquidity crisis)
 
 ---
 
@@ -264,17 +348,22 @@ Automation is introduced in **Release 3**.
 
 ## Roadmap
 
-### Release 1 (Current)
+### Release 1 ✅ (Complete)
 
-* One pipeline (Yield Curve)
-* Manual testing
-* Platform foundation
+* Platform foundation (Kafka, Flink, Docker Compose)
+* Three pipelines implemented:
+  1. Yield Curve Inversion
+  2. Credit Spreads (High Yield vs Treasuries)
+  3. Repo Market Stress / SOFR Spikes
+* Unit tests for all pipelines
+* Local development environment
+* Manual testing and validation
 
-### Release 2
+### Release 2 (Next)
 
-* 2–3 new signals
-* Expanded schemas
-* Manual validation
+* Additional signals (VIX, TED Spread, etc.)
+* Enhanced Flink jobs with windowing and state
+* Integration tests
 
 ### Release 3
 

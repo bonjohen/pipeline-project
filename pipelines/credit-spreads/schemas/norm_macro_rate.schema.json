@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "event_id": "uuid",
+  "source": "fred",
+  "series_id": "BAMLH0A0HYM2EY",
+  "event_date": "YYYY-MM-DD",
+  "value_pct": 7.85,
+  "ingest_ts_utc": "YYYY-MM-DDTHH:MM:SSZ"
+}
+

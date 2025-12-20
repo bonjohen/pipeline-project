@@ -1,6 +1,54 @@
 # Quick Start Guide - Local Development
 
-Get the yield curve pipeline running locally in **10 minutes**.
+Get the financial signals pipelines running locally in **10 minutes**.
+
+This guide covers all three implemented pipelines:
+1. **Yield Curve Inversion** (10Y-2Y Treasury spread)
+2. **Credit Spreads** (High Yield vs Treasuries)
+3. **Repo Market Stress** (SOFR spikes)
+
+## 🚀 Automated Setup (Recommended)
+
+Use the automated script to start everything:
+
+**Windows:**
+```powershell
+$env:FRED_API_KEY = "your_api_key_here"
+.\scripts\start-all.ps1
+```
+
+**macOS/Linux:**
+```bash
+export FRED_API_KEY="your_api_key_here"
+./scripts/start-all.sh
+```
+
+This script will:
+1. **Automatically start Docker Desktop** if not running (Windows/macOS)
+2. Build all pipelines
+3. Start Docker Compose (Kafka, Flink, Zookeeper)
+4. Run all ingestors
+5. Submit all Flink jobs via REST API
+
+**Skip options:**
+- `--SkipBuild` (PowerShell) / `--skip-build` (bash) - Skip building JARs
+- `--SkipDocker` (PowerShell) / `--skip-docker` (bash) - Skip Docker startup
+- `--SkipIngestors` (PowerShell) / `--skip-ingestors` (bash) - Skip running ingestors
+
+**To stop all services:**
+```powershell
+# Windows
+.\scripts\stop-all.ps1
+
+# macOS/Linux
+./scripts/stop-all.sh
+```
+
+---
+
+## 📋 Manual Setup (Step-by-Step)
+
+If you prefer to run each step manually:
 
 ---
 
@@ -31,64 +79,124 @@ Wait ~30 seconds for services to initialize.
 
 ## Step 2: Build Applications
 
+You can build all pipelines or just one. Here's how to build all:
+
 ```powershell
-# Build both the ingestor and Flink job
+# Build Yield Curve pipeline
 cd pipelines\yield-curve\ingestor
 sbt clean compile assembly
-
 cd ..\flink-job
 sbt clean compile assembly
+cd ..\..\..
 
+# Build Credit Spreads pipeline
+cd pipelines\credit-spreads\ingestor
+sbt clean compile assembly
+cd ..\flink-job
+sbt clean compile assembly
+cd ..\..\..
+
+# Build Repo Stress pipeline
+cd pipelines\repo-stress\ingestor
+sbt clean compile assembly
+cd ..\flink-job
+sbt clean compile assembly
 cd ..\..\..
 ```
 
-**Expected output:**
-- `pipelines/yield-curve/ingestor/target/scala-2.13/fred-ingestor-assembly-0.1.0.jar`
-- `pipelines/yield-curve/flink-job/target/scala-2.12/yield-curve-flink-assembly-0.1.0.jar`
+**Or use the automated script:**
+```powershell
+.\scripts\bootstrap\build-all.ps1
+```
 
 ---
 
-## Step 3: Run the Ingestor
+## Step 3: Run Ingestors
 
+Set environment variables first:
 ```powershell
-# Set environment variables
 $env:FRED_API_KEY = "your_api_key_here"
 $env:KAFKA_BOOTSTRAP = "localhost:29092"
-
-# Run the ingestor
-cd pipelines\yield-curve\ingestor
-sbt run
 ```
 
-You should see: `Publishing to Kafka topic: norm.macro.rate`
+Then run each ingestor (choose one or run all):
 
-Press Ctrl+C when done, then return to project root:
+**Yield Curve:**
 ```powershell
+cd pipelines\yield-curve\ingestor
+sbt run
 cd ..\..\..
 ```
 
+**Credit Spreads:**
+```powershell
+cd pipelines\credit-spreads\ingestor
+sbt run
+cd ..\..\..
+```
+
+**Repo Stress:**
+```powershell
+cd pipelines\repo-stress\ingestor
+sbt run
+cd ..\..\..
+```
+
+You should see: `✅ Data ingested to Kafka topic: norm.macro.rate`
+
 ---
 
-## Step 4: Submit Flink Job
+## Step 4: Submit Flink Jobs
 
-1. Open **http://localhost:8081** in your browser
-2. Click **"Submit New Job"** in the left sidebar
-3. Click **"+ Add New"** button
-4. Upload: `pipelines\yield-curve\flink-job\target\scala-2.12\yield-curve-flink-assembly-0.1.0.jar`
-5. Set **Entry Class:** `YieldCurveJob`
-6. Click **"Submit"**
+Open **http://localhost:8081** in your browser and submit each job:
 
-The job should appear in "Running Jobs".
+### Yield Curve Job
+1. Click **"Submit New Job"** → **"+ Add New"**
+2. Upload: `pipelines\yield-curve\flink-job\target\scala-2.12\yield-curve-flink-assembly-0.1.0.jar`
+3. Entry Class: `YieldCurveJob`
+4. Click **"Submit"**
+
+### Credit Spreads Job
+1. Click **"Submit New Job"** → **"+ Add New"**
+2. Upload: `pipelines\credit-spreads\flink-job\target\scala-2.12\credit-spreads-flink-assembly-0.1.0.jar`
+3. Entry Class: `CreditSpreadsJob`
+4. Click **"Submit"**
+
+### Repo Stress Job
+1. Click **"Submit New Job"** → **"+ Add New"**
+2. Upload: `pipelines\repo-stress\flink-job\target\scala-2.12\repo-stress-flink-assembly-0.1.0.jar`
+3. Entry Class: `RepoStressJob`
+4. Click **"Submit"**
+
+All jobs should appear in "Running Jobs".
 
 ---
 
 ## Step 5: View Results
 
+View output from each pipeline:
+
+**Yield Curve Signals:**
 ```powershell
-# View the output signals
 docker exec yield-kafka kafka-console-consumer `
   --bootstrap-server localhost:9092 `
   --topic signal.yield_curve `
+  --from-beginning
+```
+
+**Credit Spread Signals:**
+```powershell
+docker exec yield-kafka kafka-console-consumer `
+  --bootstrap-server localhost:9092 `
+  --topic signal.credit_spread `
+  --from-beginning
+```
+
+**Repo Stress Signals:**
+```powershell
+docker exec yield-kafka kafka-console-consumer `
+  --bootstrap-server localhost:9092 `
+  --topic signal.repo_stress `
   --from-beginning
 ```
 
@@ -115,27 +223,7 @@ Then follow Steps 4-5 above to submit the Flink job and view results.
 
 ## What You'll See
 
-### Ingestor Output
-```
-Fetching DGS10 and DGS2 data from FRED...
-Publishing to Kafka topic: norm.macro.rate
-Done!
-```
-
-### Kafka Input Topic (norm.macro.rate)
-```json
-{
-  "schema_version": 1,
-  "event_id": "uuid-here",
-  "source": "fred",
-  "series_id": "DGS10",
-  "event_date": "2025-12-18",
-  "value_pct": 4.52,
-  "ingest_ts_utc": "2025-12-19T10:30:00Z"
-}
-```
-
-### Kafka Output Topic (signal.yield_curve)
+### Example Output: Yield Curve Signal
 ```json
 {
   "schema_version": 1,
@@ -144,6 +232,31 @@ Done!
   "spread_bps": 45.2,
   "is_inverted": false,
   "regime": "NORMAL"
+}
+```
+
+### Example Output: Credit Spread Signal
+```json
+{
+  "schema_version": 1,
+  "signal_id": "CREDIT_SPREAD_HY_10Y",
+  "event_date": "2025-12-18",
+  "spread_bps": 358.0,
+  "regime": "NORMAL",
+  "stress_level": "LOW"
+}
+```
+
+### Example Output: Repo Stress Signal
+```json
+{
+  "schema_version": 1,
+  "signal_id": "REPO_STRESS_SOFR",
+  "event_date": "2025-12-18",
+  "spread_bps": 7.0,
+  "spike_detected": false,
+  "stress_level": "NORMAL",
+  "rolling_avg_30d_bps": 7.0
 }
 ```
 

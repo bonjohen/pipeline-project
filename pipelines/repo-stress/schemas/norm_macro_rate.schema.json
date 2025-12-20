@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "event_id": "uuid",
+  "source": "fred",
+  "series_id": "SOFR",
+  "event_date": "YYYY-MM-DD",
+  "value_pct": 4.57,
+  "ingest_ts_utc": "YYYY-MM-DDTHH:MM:SSZ"
+}
+
