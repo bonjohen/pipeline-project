@@ -58,6 +58,18 @@ else
     echo ""
 fi
 
+# Check Nasdaq Data Link API key
+echo "Checking NASDAQ_DATA_LINK_API_KEY..."
+if [ -z "$NASDAQ_DATA_LINK_API_KEY" ]; then
+    echo "⚠️  NASDAQ_DATA_LINK_API_KEY not set (optional for market-breadth pipeline)."
+    echo "   Get a free key at: https://data.nasdaq.com"
+    echo "   Then run: export NASDAQ_DATA_LINK_API_KEY='your_key_here'"
+    echo ""
+else
+    echo "✅ NASDAQ_DATA_LINK_API_KEY is set"
+    echo ""
+fi
+
 # Start Docker services
 echo "Starting platform services (Kafka, Flink)..."
 docker-compose up -d
@@ -77,8 +89,9 @@ echo "✅ Platform services are running!"
 echo "========================================="
 echo ""
 echo "Next steps:"
-echo "1. Set FRED_API_KEY if not already set:"
+echo "1. Set API keys if not already set:"
 echo "   export FRED_API_KEY='your_key_here'"
+echo "   export NASDAQ_DATA_LINK_API_KEY='your_key_here'  # Optional for market-breadth"
 echo ""
 echo "2. Build the applications:"
 echo "   ./scripts/bootstrap/build-all.sh"

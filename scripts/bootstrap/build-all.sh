@@ -35,10 +35,19 @@ sbt clean compile assembly
 echo "✅ Repo Stress Pipeline built"
 echo ""
 
+# Build Market Breadth Pipeline
+echo "4. Building Market Breadth Pipeline..."
+cd ../../market-breadth/ingestor
+sbt clean compile assembly
+cd ../flink-job
+sbt clean compile assembly
+echo "✅ Market Breadth Pipeline built"
+echo ""
+
 cd ../../..
 
 echo "========================================="
-echo "✅ All 3 pipelines built successfully!"
+echo "✅ All 4 pipelines built successfully!"
 echo "========================================="
 echo ""
 echo "Built JARs:"
@@ -48,6 +57,8 @@ echo "  - pipelines/credit-spreads/ingestor/target/scala-2.13/credit-spreads-ing
 echo "  - pipelines/credit-spreads/flink-job/target/scala-2.12/credit-spreads-flink-assembly-0.1.0.jar"
 echo "  - pipelines/repo-stress/ingestor/target/scala-2.13/repo-stress-ingestor-assembly-0.1.0.jar"
 echo "  - pipelines/repo-stress/flink-job/target/scala-2.12/repo-stress-flink-assembly-0.1.0.jar"
+echo "  - pipelines/market-breadth/ingestor/target/scala-2.13/breadth-ingestor-assembly-0.1.0.jar"
+echo "  - pipelines/market-breadth/flink-job/target/scala-2.12/breadth-flink-assembly-0.1.0.jar"
 echo ""
 echo "Next: Run ingestors and submit Flink jobs via http://localhost:8081"
 echo ""

@@ -8,10 +8,9 @@ Write-Host ""
 # Check Docker
 Write-Host "Checking Docker..." -ForegroundColor Yellow
 try {
-    $dockerVersion = docker --version
-    docker info | Out-Null
+    $null = docker info 2>&1
     if ($LASTEXITCODE -ne 0) {
-        throw "Docker not running"
+        throw "Docker daemon not running"
     }
     Write-Host "✅ Docker is running" -ForegroundColor Green
 } catch {
@@ -58,6 +57,18 @@ if (-not $env:FRED_API_KEY) {
     Write-Host ""
 }
 
+# Check Nasdaq Data Link API key
+Write-Host "Checking NASDAQ_DATA_LINK_API_KEY..." -ForegroundColor Yellow
+if (-not $env:NASDAQ_DATA_LINK_API_KEY) {
+    Write-Host "⚠️  NASDAQ_DATA_LINK_API_KEY not set (optional for market-breadth pipeline)." -ForegroundColor Yellow
+    Write-Host "   Get a free key at: https://data.nasdaq.com" -ForegroundColor Yellow
+    Write-Host "   Then run: `$env:NASDAQ_DATA_LINK_API_KEY = 'your_key_here'" -ForegroundColor Yellow
+    Write-Host ""
+} else {
+    Write-Host "✅ NASDAQ_DATA_LINK_API_KEY is set" -ForegroundColor Green
+    Write-Host ""
+}
+
 # Start Docker services
 Write-Host "Starting platform services (Kafka, Flink)..." -ForegroundColor Yellow
 docker-compose up -d
@@ -77,8 +88,9 @@ Write-Host "✅ Platform services are running!" -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. Set FRED_API_KEY if not already set:" -ForegroundColor White
+Write-Host "1. Set API keys if not already set:" -ForegroundColor White
 Write-Host "   `$env:FRED_API_KEY = 'your_key_here'" -ForegroundColor Gray
+Write-Host "   `$env:NASDAQ_DATA_LINK_API_KEY = 'your_key_here'  # Optional for market-breadth" -ForegroundColor Gray
 Write-Host ""
 Write-Host "2. Build the applications:" -ForegroundColor White
 Write-Host "   .\scripts\bootstrap\build-all.ps1" -ForegroundColor Gray
