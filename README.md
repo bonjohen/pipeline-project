@@ -1,20 +1,19 @@
-# Yield Curve Inversion Signal
+# Pipeline Processing
 
-**Fly.io–hosted, Scala + Kafka + Flink streaming pipeline**
+**Fly.io–hosted (soon), Scala + Kafka + Flink streaming pipeline**
 
 ---
 
 ## Overview
 
-This repository implements a **production-style streaming analytics platform** that detects **U.S. Treasury yield curve inversions (10Y–2Y)** using real economic data from the Federal Reserve.
+This repository implements a **production-style streaming analytics platform** that detects economic signals, such as **U.S. Treasury yield curve inversions (10Y–2Y)**, using Federal Reserve Economic Data.
 
 The project is designed as a **teaching-quality reference system** that demonstrates:
 
 * Multi-service streaming architectures
 * State-aware stream processing with Apache Flink
 * Event-driven pipelines using Apache Kafka
-* Cloud-native deployment using Fly.io
-* Clean separation between **platform**, **pipelines**, and **future customer-facing systems**
+* Cloud-native deployment using Fly.io (soon)
 
 The first release implements **three pipelines**:
 1. Yield Curve Inversion (10Y-2Y Treasury spread)
@@ -79,7 +78,7 @@ Development follows a progressive validation model:
    * Linux (bash)
 
 3. **Cloud deployment** (future)
-   * Deploy to Fly.io using same artifacts
+   * Deploy to Fly.io using the same artifacts
    * Remote monitoring and validation
 
 ---
@@ -402,12 +401,4 @@ All artifacts (slides, screenshots, narration scripts) will be versioned in this
 This project is provided for **educational and experimental purposes**.
 Licensing details will be finalized prior to public release.
 
----
 
-If you want next steps, I can:
-
-* Add `docs/` with slide + narration templates
-* Add pipeline scaffolding for the next 9 signals
-* Add Fly.io deployment scripts
-* Add CI/CD stubs
-* Add dashboard architecture skeleton
