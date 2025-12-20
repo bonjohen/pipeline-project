@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source": "nasdaq_data_link",
+  "dataset": "NYSE_ADV_DEC",
+  "exchange": "NYSE",
+  "date": "2025-03-14",
+  "advancing": 1834,
+  "declining": 982,
+  "unchanged": 114,
+  "ingested_at": "2025-03-14T22:10:03Z"
+}
+

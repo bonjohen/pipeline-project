@@ -118,7 +118,11 @@ yield-curve-pipeline/
 │   │   ├── schemas/
 │   │   ├── ingestor/
 │   │   └── flink-job/
-│   └── repo-stress/          # Pipeline 03: Repo Market Stress / SOFR Spikes
+│   ├── repo-stress/          # Pipeline 03: Repo Market Stress / SOFR Spikes
+│   │   ├── schemas/
+│   │   ├── ingestor/
+│   │   └── flink-job/
+│   └── market-breadth/       # Pipeline 04: Market Breadth Thrust (Zweig)
 │       ├── schemas/
 │       ├── ingestor/
 │       └── flink-job/
@@ -334,6 +338,31 @@ For local development and testing:
 
 ---
 
+### 4. Market Breadth Thrust (Zweig Indicator)
+
+**Data Inputs:**
+* **NYSE Advance/Decline Data** – Daily counts of advancing, declining, and unchanged issues
+* **Source:** Nasdaq Data Link (formerly Quandl)
+
+**Output Signal:**
+* `breadth_ratio = advancing / (advancing + declining)`
+* `thrust_detected = ratio rises from < 0.40 to > 0.615 within 10 days`
+* `confidence = HIGH | MODERATE`
+
+**Kafka Topics:**
+* Input (Raw): `market.breadth.raw`
+* Input (Normalized): `market.breadth.normalized`
+* Output: `signals.breadth.zweig`
+
+**Interpretation:**
+* Zweig Breadth Thrust is a rare and powerful bullish signal
+* Indicates aggressive institutional buying and broad market participation
+* Historically associated with the start of durable bull markets
+* Occurs only a few times per decade
+* High confidence when ratio exceeds 0.65
+
+---
+
 ## Testing Strategy (Release 1)
 
 * **Unit tests** for every Scala file
@@ -350,10 +379,11 @@ Automation is introduced in **Release 3**.
 ### Release 1 ✅ (Complete)
 
 * Platform foundation (Kafka, Flink, Docker Compose)
-* Three pipelines implemented:
+* Four pipelines implemented:
   1. Yield Curve Inversion
   2. Credit Spreads (High Yield vs Treasuries)
   3. Repo Market Stress / SOFR Spikes
+  4. Market Breadth Thrust (Zweig Indicator)
 * Unit tests for all pipelines
 * Local development environment
 * Manual testing and validation

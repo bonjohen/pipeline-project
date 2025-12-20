@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "signal_id": "ZWEIG_BREADTH_THRUST",
+  "exchange": "NYSE",
+  "trigger_date": "2025-03-14",
+  "window_days": 10,
+  "from_ratio": 0.37,
+  "to_ratio": 0.651,
+  "threshold_low": 0.40,
+  "threshold_high": 0.615,
+  "thrust_detected": true,
+  "confidence": "HIGH"
+}
+

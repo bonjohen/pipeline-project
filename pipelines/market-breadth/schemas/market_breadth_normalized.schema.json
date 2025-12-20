@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "event_id": "uuid",
+  "source": "nasdaq_data_link",
+  "exchange": "NYSE",
+  "event_date": "2025-03-14",
+  "advancing": 1834,
+  "declining": 982,
+  "unchanged": 114,
+  "total_issues": 2930,
+  "breadth_ratio": 0.651,
+  "net_advances": 852,
+  "ingest_ts_utc": "2025-03-14T22:10:03Z"
+}
+

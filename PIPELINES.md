@@ -185,3 +185,81 @@ cd pipelines/repo-stress/ingestor && sbt run
 # Entry Class: RepoStressJob
 ```
 
+---
+
+## 4. Market Breadth Thrust (Zweig Indicator)
+
+**Status:** ✅ Implemented
+
+### Overview
+Detects the Zweig Breadth Thrust, a rare and powerful bullish signal that occurs when market breadth rapidly expands from oversold to strong levels. This indicates aggressive institutional buying and broad market participation, historically associated with the start of durable bull markets.
+
+### Data Sources
+- **NYSE Advance/Decline Data** – Daily counts of advancing, declining, and unchanged issues
+- **Source:** Nasdaq Data Link (formerly Quandl)
+- **Dataset:** NYSE breadth statistics (e.g., FINRA/FNSQ_NYSE or similar)
+
+### Signal Logic
+```
+breadth_ratio = advancing / (advancing + declining)
+
+Zweig Thrust Condition:
+  1. Ratio rises from below 0.40 to above 0.615
+  2. Occurs within a 10-day window
+
+confidence:
+  > 0.65  → HIGH
+  > 0.615 → MODERATE
+```
+
+### Kafka Topics
+- **Input (Raw):** `market.breadth.raw`
+- **Input (Normalized):** `market.breadth.normalized`
+- **Output:** `signals.breadth.zweig`
+
+### Output Schema
+```json
+{
+  "schema_version": 1,
+  "signal_id": "ZWEIG_BREADTH_THRUST",
+  "exchange": "NYSE",
+  "trigger_date": "2025-03-14",
+  "window_days": 10,
+  "from_ratio": 0.37,
+  "to_ratio": 0.651,
+  "threshold_low": 0.40,
+  "threshold_high": 0.615,
+  "thrust_detected": true,
+  "confidence": "HIGH"
+}
+```
+
+### Build & Run
+```bash
+# Build
+cd pipelines/market-breadth/ingestor && sbt clean compile assembly
+cd ../flink-job && sbt clean compile assembly
+
+# Run ingestor
+export NASDAQ_DATA_LINK_API_KEY="your_key"
+export KAFKA_BOOTSTRAP="localhost:29092"
+cd pipelines/market-breadth/ingestor && sbt run
+
+# Submit Flink job via http://localhost:8081
+# Upload: pipelines/market-breadth/flink-job/target/scala-2.12/breadth-flink-assembly-0.1.0.jar
+# Entry Class: BreadthSignalJob
+```
+
+### Data Flow
+1. **Ingestor** pulls NYSE breadth data from Nasdaq Data Link API
+2. Publishes raw data to `market.breadth.raw` (immutable audit log)
+3. Calculates breadth ratio and publishes to `market.breadth.normalized`
+4. **Flink Job** maintains a sliding 10-day window per exchange
+5. Detects Zweig Thrust pattern and emits signals to `signals.breadth.zweig`
+
+### Notes
+- The ingestor fetches the last 30 days of data by default
+- Update the `DatasetCode` in `BreadthIngestor.scala` with your actual Nasdaq Data Link dataset
+- Breadth data is typically updated once per trading day after market close
+- The Zweig Thrust is a rare signal (historically occurs only a few times per decade)
+

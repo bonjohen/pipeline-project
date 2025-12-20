@@ -142,7 +142,18 @@ sbt run
 cd ..\..\..
 ```
 
-You should see: `✅ Data ingested to Kafka topic: norm.macro.rate`
+**Market Breadth:**
+```powershell
+# Set your Nasdaq Data Link API key
+$env:NASDAQ_DATA_LINK_API_KEY="your_api_key_here"
+
+cd pipelines\market-breadth\ingestor
+sbt run
+cd ..\..\..
+```
+
+You should see: `✅ Data ingested to Kafka topic: norm.macro.rate` (for FRED pipelines)
+or `✅ Successfully ingested N breadth records` (for Market Breadth)
 
 ---
 
@@ -166,6 +177,12 @@ Open **http://localhost:8081** in your browser and submit each job:
 1. Click **"Submit New Job"** → **"+ Add New"**
 2. Upload: `pipelines\repo-stress\flink-job\target\scala-2.12\repo-stress-flink-assembly-0.1.0.jar`
 3. Entry Class: `RepoStressJob`
+4. Click **"Submit"**
+
+### Market Breadth Job
+1. Click **"Submit New Job"** → **"+ Add New"**
+2. Upload: `pipelines\market-breadth\flink-job\target\scala-2.12\breadth-flink-assembly-0.1.0.jar`
+3. Entry Class: `BreadthSignalJob`
 4. Click **"Submit"**
 
 All jobs should appear in "Running Jobs".
@@ -197,6 +214,30 @@ docker exec yield-kafka kafka-console-consumer `
 docker exec yield-kafka kafka-console-consumer `
   --bootstrap-server localhost:9092 `
   --topic signal.repo_stress `
+  --from-beginning
+```
+
+**Market Breadth Signals:**
+```powershell
+docker exec yield-kafka kafka-console-consumer `
+  --bootstrap-server localhost:9092 `
+  --topic signals.breadth.zweig `
+  --from-beginning
+```
+
+**Market Breadth Raw Data:**
+```powershell
+docker exec yield-kafka kafka-console-consumer `
+  --bootstrap-server localhost:9092 `
+  --topic market.breadth.raw `
+  --from-beginning
+```
+
+**Market Breadth Normalized Data:**
+```powershell
+docker exec yield-kafka kafka-console-consumer `
+  --bootstrap-server localhost:9092 `
+  --topic market.breadth.normalized `
   --from-beginning
 ```
 
