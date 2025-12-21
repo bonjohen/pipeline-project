@@ -1,0 +1,19 @@
+# Fly.io configuration for Yield Curve Ingestor
+app = 'pipeline-yield-ingestor'
+primary_region = 'sjc'
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  KAFKA_BOOTSTRAP = "pipeline-kafka.internal:9092"
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+# Ingestor runs once and exits - use cron or manual trigger
+[processes]
+  app = "java -jar app.jar"
+

@@ -1,0 +1,18 @@
+# Fly.io configuration for Credit Spreads Ingestor
+app = 'pipeline-credit-ingestor'
+primary_region = 'sjc'
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  KAFKA_BOOTSTRAP = "pipeline-kafka.internal:9092"
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[processes]
+  app = "java -jar app.jar"
+

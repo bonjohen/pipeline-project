@@ -1,0 +1,15 @@
+# Fly.io configuration for Flink TaskManager
+app = 'pipeline-flink-taskmanager'
+primary_region = 'sjc'
+
+[build]
+  dockerfile = "Dockerfile.taskmanager"
+
+[env]
+  FLINK_PROPERTIES = "jobmanager.rpc.address: pipeline-flink-jobmanager.internal\ntaskmanager.numberOfTaskSlots: 4"
+
+[[vm]]
+  memory = '2gb'
+  cpu_kind = 'shared'
+  cpus = 1
+

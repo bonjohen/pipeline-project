@@ -1,0 +1,44 @@
+# Fly.io configuration for Flink JobManager
+app = 'pipeline-flink-jobmanager'
+primary_region = 'sjc'
+
+[build]
+  dockerfile = "Dockerfile.jobmanager"
+
+[env]
+  FLINK_PROPERTIES = "jobmanager.rpc.address: pipeline-flink-jobmanager.internal\ntaskmanager.numberOfTaskSlots: 4"
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 6123
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8081
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = 10000
+    timeout = 2000
+    grace_period = "30s"
+    method = "get"
+    path = "/"
+    protocol = "http"
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+

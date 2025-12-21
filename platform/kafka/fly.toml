@@ -1,35 +1,31 @@
-# fly.toml app configuration file generated for yield-kafka-wispy-bush-3974 on 2025-12-18T23:01:42-08:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'yield-kafka-wispy-bush-3974'
-primary_region = 'ord'
+# Fly.io configuration for Kafka + Zookeeper
+app = 'pipeline-kafka'
+primary_region = 'sjc'
 
 [build]
+  dockerfile = "Dockerfile"
 
 [env]
-  KAFKA_ADVERTISED_LISTENERS = 'PLAINTEXT://yield-kafka.internal:9092'
   KAFKA_BROKER_ID = '1'
-  KAFKA_LISTENERS = 'PLAINTEXT://0.0.0.0:9092'
-  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR = '1'
   KAFKA_ZOOKEEPER_CONNECT = 'localhost:2181'
-
-[http_service]
-  internal_port = 9092
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+  KAFKA_LISTENERS = 'PLAINTEXT://0.0.0.0:9092'
+  KAFKA_ADVERTISED_LISTENERS = 'PLAINTEXT://pipeline-kafka.internal:9092'
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP = 'PLAINTEXT:PLAINTEXT'
+  KAFKA_INTER_BROKER_LISTENER_NAME = 'PLAINTEXT'
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR = '1'
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR = '1'
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR = '1'
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE = 'true'
 
 [[services]]
   protocol = 'tcp'
   internal_port = 9092
-  ports = []
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 1024
+
+[mounts]
+  source = "kafka_data"
+  destination = "/var/lib/kafka/data"
